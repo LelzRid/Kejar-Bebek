@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kejar Bebek! 🦆</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game-wrapper">
+    <header class="hud">
+      <div class="hud-group">
+        <div class="hud-pill" id="level-pill">
+          <span class="hud-label">LEVEL</span>
+          <span class="hud-value" id="hud-level">1</span>
+        </div>
+        <div class="hud-pill" id="ducks-pill">
+          <span class="hud-label">🦆 BEBEK</span>
+          <span class="hud-value" id="hud-ducks">0 / 10</span>
+        </div>
+      </div>
+
+      <div class="hud-pill timer-pill" id="timer-pill">
+        <span class="hud-label">⏱ WAKTU</span>
+        <span class="hud-value" id="hud-timer">35.0d</span>
+      </div>
+
+      <div class="hud-group">
+        <div class="hud-pill" id="score-pill">
+          <span class="hud-label">SKOR</span>
+          <span class="hud-value" id="hud-score">0</span>
+        </div>
+        <button class="icon-btn" id="btn-sound" title="Suara On/Off">🔊</button>
+        <button class="icon-btn" id="btn-pause" title="Jeda (P)">⏸️</button>
+      </div>
+    </header>
+
+    <main class="canvas-container">
+      <canvas id="game-canvas" width="960" height="600"></canvas>
+
+      <!-- Active Power-ups Strip -->
+      <div class="upgrades-hud" id="upgrades-hud"></div>
+
+      <!-- Dash bar indicator -->
+      <div class="dash-hud" id="dash-hud">
+        <span class="dash-label">⚡ DASH (SPASI)</span>
+        <div class="dash-bar-bg">
+          <div class="dash-bar-fill" id="dash-bar-fill"></div>
+        </div>
+      </div>
+
+      <!-- Poop Slow Debuff indicator -->
+      <div class="slow-hud" id="slow-hud">
+        <span class="slow-label">💩 KENA TAIK! LAMBAT:</span>
+        <strong class="slow-timer" id="slow-timer">2.0d</strong>
+      </div>
+
+      <!-- Start Overlay -->
+      <div class="overlay active" id="overlay-start">
+        <div class="card">
+          <div class="title-badge">PERMAINAN ARENA</div>
+          <h1>🦆 Kejar Bebek!</h1>
+          <p class="subtitle">
+            Semua bebek kabur ke halaman! Tangkap semuanya sebelum waktu habis.
+          </p>
+
+          <div class="controls-grid">
+            <div class="control-item">
+              <div class="keys">
+                <kbd>W</kbd>
+                <div class="keys-row">
+                  <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+                </div>
+              </div>
+              <span>Bergerak</span>
+            </div>
+            <div class="control-item">
+              <div class="keys">
+                <kbd class="wide">SPASI</kbd>
+              </div>
+              <span>Dash / Terjang</span>
+            </div>
+            <div class="control-item">
+              <div class="keys">
+                <kbd>P</kbd> / <kbd>R</kbd>
+              </div>
+              <span>Jeda / Ulang</span>
+            </div>
+          </div>
+
+          <div class="duck-legend">
+            <div class="legend-item"><span class="dot yellow"></span> Biasa (+100)</div>
+            <div class="legend-item"><span class="dot white"></span> Gesit (+150)</div>
+            <div class="legend-item"><span class="dot sky"></span> Terbang (+220)</div>
+            <div class="legend-item"><span class="dot ninja"></span> Ninja (+250)</div>
+            <div class="legend-item"><span class="dot brown"></span> Usil/Poop (+200)</div>
+            <div class="legend-item"><span class="dot gold"></span> Emas (+300 & +5d)</div>
+          </div>
+
+          <div class="difficulty-row">
+            <button class="diff-btn" data-diff="easy">Santai</button>
+            <button class="diff-btn active" data-diff="normal">Normal</button>
+            <button class="diff-btn" data-diff="hard">Cepat</button>
+          </div>
+
+          <button class="primary-btn" id="btn-start">Mulai Kejar! 🏃‍♂️</button>
+          <p class="highscore-line">Skor Tertinggi: <strong id="start-highscore">0</strong></p>
+        </div>
+      </div>
+
+      <!-- Pause Overlay -->
+      <div class="overlay" id="overlay-pause">
+        <div class="card compact">
+          <h2>⏸️ Permainan Dijeda</h2>
+          <p class="subtitle">Istirahat sebentar, bebeknya menunggu!</p>
+          <div class="btn-row">
+            <button class="primary-btn" id="btn-resume">Lanjutkan</button>
+            <button class="secondary-btn" id="btn-restart-pause">Ulangi</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level Complete + 3-Card Power-Up Picker Overlay -->
+      <div class="overlay" id="overlay-win">
+        <div class="card card-wide">
+          <div class="title-badge success">LEVEL SELESAI! 🎉</div>
+          <h2 id="win-title">Semua Bebek Tertangkap!</h2>
+          <div class="stats-grid compact-stats">
+            <div class="stat-box">
+              <span>Sisa Waktu</span>
+              <strong id="win-time">12.4d</strong>
+            </div>
+            <div class="stat-box">
+              <span>Bonus Waktu</span>
+              <strong id="win-bonus">+620</strong>
+            </div>
+            <div class="stat-box">
+              <span>Total Skor</span>
+              <strong id="win-score">1500</strong>
+            </div>
+          </div>
+          <p class="pick-title">✨ Pilih 1 Kartu Power-Up untuk Level Berikutnya:</p>
+          <div class="card-choices" id="card-choices"></div>
+        </div>
+      </div>
+
+      <!-- Game Over Overlay -->
+      <div class="overlay" id="overlay-gameover">
+        <div class="card compact">
+          <div class="title-badge danger">WAKTU HABIS! ⏰</div>
+          <h2>Bebeknya Berhasil Kabur!</h2>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span>Tertangkap</span>
+              <strong id="go-caught">7 / 10</strong>
+            </div>
+            <div class="stat-box">
+              <span>Skor Akhir</span>
+              <strong id="go-score">900</strong>
+            </div>
+            <div class="stat-box">
+              <span>Rekor</span>
+              <strong id="go-highscore">1200</strong>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="primary-btn" id="btn-retry">Main Lagi 🔄</button>
+            <button class="secondary-btn" id="btn-menu">Menu Utama</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer-tip">
+      Tips: Hindari <strong>💩 taik bebek</strong> (bikin lambat 2 detik!) dan jangan terpancing emosi sama bebek yang ngeledekin!
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
